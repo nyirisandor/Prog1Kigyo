@@ -1,11 +1,17 @@
 #include "Matrix.h"
-#include <conio.h>
+
+#ifdef WIN32
+    #include <conio.h>
+    #define KEY_UP 72
+    #define KEY_DOWN 80
+    #define KEY_LEFT 75
+    #define KEY_RIGHT 77
+#else
+   #include <ncurses.h> 
+#endif
+
 #pragma once
 
-#define KEY_UP 72
-#define KEY_DOWN 80
-#define KEY_LEFT 75
-#define KEY_RIGHT 77
 
 struct coords{
     int col,row;
@@ -124,14 +130,28 @@ class kigyosmap{
         }
 
         void print(char separator = ' '){
-            for (size_t i = 0; i < this->map->Rows(); i++)
-            {
-                for (size_t j = 0; j < this->map->Cols(); j++)
+            #ifdef WIN32
+                for (size_t i = 0; i < this->map->Rows(); i++)
                 {
-                    std::cout << this->map->at(i,j) << separator;
+                    for (size_t j = 0; j < this->map->Cols(); j++)
+                    {
+                        std::cout << this->map->at(i,j) << separator;
+                    }
+                    std::cout << std::endl;
                 }
-                std::cout << std::endl;
-            }
+            #else
+                for (size_t i = 0; i < this->map->Rows(); i++)
+                {
+                    for (size_t j = 0; j < this->map->Cols(); j++)
+                    {
+                        std::string a = "";
+                        a += this->map->at(i,j);
+                        a += separator;
+                        printw(a.c_str());
+                    }
+                    printw("\n");
+                }
+            #endif
             
         }
 
@@ -161,12 +181,16 @@ class kigyosmap{
                 newPos.col++;
                 break;
             default:
-                std::cout << "Invalid direction!" << std::endl;
+                #ifdef WIN32
+                    std::cout << "Invalid direction!" << std::endl;
+                #endif
                 return 0;
             }
 
             if(newPos.col >= this->map->Cols() || newPos.col < 0 || newPos.row >= this->map->Rows() || newPos.row < 0){
-                std::cout << "Invalid position!" << std::endl;
+                #ifdef WIN32
+                    std::cout << "Invalid position!" << std::endl;
+                #endif
                 return 0;
             }
 
@@ -210,7 +234,13 @@ class kigyosjatek{
 
         bool checkForWin(){
             if(this->map.getAppleCount() == 0){
-                std::cout << "\tWin!" << std::endl << "\tSteps taken: " << this->steps << std::endl;
+                #ifdef WIN32
+                    std::cout << "\tWin!" << std::endl << "\tSteps taken: " << this->steps << std::endl;
+                #else
+                    clear();
+                    printw(("Win! \n\tSteps taken: " + std::to_string(this->steps) + "\n").c_str());
+                    refresh();
+                #endif
                 this->isPlaying = false;
                 return true;
             }
@@ -228,9 +258,13 @@ class kigyosjatek{
         }
 
         void printMap(){
-            std::cout << "Steps: " << this->steps << std::endl;
+            #ifdef WIN32
+                std::cout << "Steps: " << this->steps << std::endl;
+            #else
+                clear();
+                printw(("Steps taken: " + std::to_string(this->steps) + "\n").c_str());
+            #endif
             this->map.print();
-            std::cout << std::endl;
         }
 
         void update(){
